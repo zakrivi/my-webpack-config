@@ -1,7 +1,6 @@
-import './assets/style/index.css'
-import './assets/style/index.less'
-import './assets/fonts/element-icons.woff'
-import './assets/image/兔子牙_你终于等到她_4.jpg'
-import './assets/media/钢炼OP1.mp4'
+import Vue from 'vue'
+import App from './app'
 
-console.log('call me 老yuan!')
+new Vue({
+    render: h => h(App)
+}).$mount('#app')
