@@ -4,9 +4,9 @@ const { CleanWebpackPlugin } = require('clean-webpack-plugin')
 const MiniCssExtractPlugin = require('mini-css-extract-plugin') // 将css样式全部合并到一个单独css文件
 const vueLoaderPlugin = require('vue-loader/lib/plugin')
 const Webpack = require('webpack')
+const devMode = process.argv.indexOf('--mode=production') === -1 //webpack的mode和process的mode没有任何联系
 
 module.exports = {
-    mode: 'development', //开发模式
     entry: {
         main: path.resolve(__dirname, '../src/main.js'), //入口文件
         header: path.resolve(__dirname, '../src/header.js'), //入口文件
@@ -15,11 +15,7 @@ module.exports = {
         filename: '[name].[hash:8].js', // 打包后的文件名称
         path: path.resolve(__dirname, '../dist') //打包后的目录
     },
-    devServer: {
-        port: 8080,
-        hot: true,
-        contentBase: '../dist'
-    },
+
     resolve: {
         alias: {
             'vue$': 'vue/dist/vue.runtime.esm.js',
@@ -32,19 +28,43 @@ module.exports = {
             {
                 test: /\.css$/,
                 // use: ['style-loader', 'css-loader'] //从右向左解析原则
-                use: [MiniCssExtractPlugin.loader, 'css-loader'] //从右向左解析原则
-            },
-            {
-                test: /\.less$/,
+                // use: [MiniCssExtractPlugin.loader, 'css-loader'] //从右向左解析原则
                 use: [
-                    MiniCssExtractPlugin.loader, 'css-loader',
+                    {
+                        loader: devMode ? 'vue-style-loader' : MiniCssExtractPlugin.loader,
+                        options: {
+                            publicPath: '../dist/css/',
+                            hmr: devMode
+                        }
+                    },
+                    'css-loader',
                     {
                         loader: 'postcss-loader',
                         options: {
                             plugins: [require('autoprefixer')]
                         }
                     },
-                    'less-loader'
+                ],
+
+            },
+            {
+                test: /\.less$/,
+                use: [
+                    {
+                        loader: devMode ? 'vue-style-loader' : MiniCssExtractPlugin.loader,
+                        options: {
+                            publicPath: '../dist/css/',
+                            hmr: devMode
+                        }
+                    },
+                    'css-loader',
+                    'less-loader',
+                    {
+                        loader: 'postcss-loader',
+                        options: {
+                            plugins: [require('autoprefixer')]
+                        }
+                    },
                 ] // 从右向左解析原则
             },
             {
@@ -128,10 +148,9 @@ module.exports = {
             chunks: ['header'] // 与入口文件对应的模块名
         }),
         new MiniCssExtractPlugin({
-            filename: '[name].[hash].css',
-            chunkFilename: '[id].css'
+            filename: devMode ? '[name].css' : '[name].[hash].css',
+            chunkFilename: devMode ? '[id].css' : '[id].[hash]css'
         }),
-        new vueLoaderPlugin(),
-        new Webpack.HotModuleReplacementPlugin()
+        new vueLoaderPlugin()
     ]
 }
