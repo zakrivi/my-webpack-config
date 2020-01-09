@@ -3,8 +3,10 @@ const HtmlWebpackPlugin = require('html-webpack-plugin')
 const { CleanWebpackPlugin } = require('clean-webpack-plugin')
 const MiniCssExtractPlugin = require('mini-css-extract-plugin') // 将css样式全部合并到一个单独css文件
 const vueLoaderPlugin = require('vue-loader/lib/plugin')
-const Webpack = require('webpack')
 const devMode = process.argv.indexOf('--mode=production') === -1 //webpack的mode和process的mode没有任何联系
+const Happypack = require('happypack')
+const os = require('os')
+const HappyThreadPool = Happypack.ThreadPool({ size: os.cpus().length })
 
 module.exports = {
     entry: {
@@ -120,12 +122,10 @@ module.exports = {
             },
             {
                 test: /\.js$/,
-                use: {
-                    loader: 'babel-loader',
-                    options: {
-                        presets: ['@babel/preset-env']
-                    }
-                },
+                // 把js文件处理交给id为happBabel的happyPack的实例执行
+                use: [{
+                    loader: 'happypack/loader?id=happBabel'
+                }],
                 exclude: /node_modules/
             },
             {
@@ -151,6 +151,20 @@ module.exports = {
             filename: devMode ? '[name].css' : '[name].[hash].css',
             chunkFilename: devMode ? '[id].css' : '[id].[hash]css'
         }),
-        new vueLoaderPlugin()
+        new vueLoaderPlugin(),
+        new Happypack({
+            id: 'happBabel', // loader对应的id标识
+            // 用户和loader的配置一样，注意这里是loaders
+            loaders: [
+                {
+                    loader: 'babel-loader',
+                    options: {
+                        presets: ['@babel/preset-env'],
+                        cacheDirectory: true
+                    }
+                }
+            ],
+            threadPool: HappyThreadPool
+        })
     ]
 }
