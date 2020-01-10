@@ -127,7 +127,7 @@ module.exports = {
       },
       {
         test: /\.vue$/,
-        use: ['vue-loader']
+        use: ['cache-loader', 'vue-loader']
       }
     ]
   },
