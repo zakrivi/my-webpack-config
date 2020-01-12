@@ -52,7 +52,8 @@ if (process.env.npm_config_report) {
   config.plugins.push(new BundleAnalyzerPlugin({
     openAnalyzer: true,
     analyzerMode: 'static',
-    generateStatsFile: true
+    generateStatsFile: true,
+    defaultSizes: 'parsed'
   }))
 }
 
